@@ -1,8 +1,19 @@
 {
- "updated": "2026-11-16 17:39",
+ "updated": "2026-11-16 18:05",
  "pending": 22,
  "errors": [
-  "GEMINI_API_KEY が未設定のため価格抽出をスキップしました"
+  "keio-3166401: 抽出失敗 (The read operation timed out)",
+  "keio-3151110: 抽出失敗 (Gemini API 503: {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n)",
+  "ozeki-00026669: 抽出失敗 (<urlopen error timed out>)",
+  "ozeki-00026650: 抽出失敗 (<urlopen error timed out>)",
+  "ozeki-00026643: 抽出失敗 (<urlopen error timed out>)",
+  "ozeki-00026633: 抽出失敗 (<urlopen error timed out>)",
+  "ozeki-00026572: 抽出失敗 (<urlopen error timed out>)",
+  "ozeki-00026539: 抽出失敗 (<urlopen error timed out>)",
+  "ozeki-00026538: 抽出失敗 (<urlopen error timed out>)",
+  "ozeki-00026537: 抽出失敗 (<urlopen error timed out>)",
+  "ozeki-00026536: 抽出失敗 (<urlopen error timed out>)",
+  "ozeki-00026535: 抽出失敗 (<urlopen error timed out>)"
  ],
  "stores": {
   "keio": "京王ストア 府中店",
