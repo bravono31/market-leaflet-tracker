@@ -1,10 +1,8 @@
 name: Update leaflet data
 
+# Fallback only: the daily update is done by the Claude routine (see ROUTINE.md).
+# Run this by hand to extract with the Gemini API instead.
 on:
-  schedule:
-    # 07:10 and 19:10 JST. Twice a day so a quota-limited run catches up.
-    - cron: "10 22 * * *"
-    - cron: "10 10 * * *"
   workflow_dispatch:
 
 permissions:
