@@ -1,0 +1,19 @@
+{
+ "updated": "2026-11-16 17:39",
+ "pending": 22,
+ "errors": [
+  "GEMINI_API_KEY が未設定のため価格抽出をスキップしました"
+ ],
+ "stores": {
+  "keio": "京王ストア 府中店",
+  "summit": "サミット ミナノ分倍河原店",
+  "yaoko": "ヤオコー 府中フォーリス店",
+  "ozeki": "オオゼキ 府中店"
+ },
+ "store_urls": {
+  "keio": "https://chirashi.kurashiru.com/stores/9364f453-e760-47b4-ac60-49468c163751/limit_excursion",
+  "summit": "https://www.summitstore.co.jp/store/tokyo/post/?id=151",
+  "yaoko": "https://www.yaoko-net.com/store/store06/208.html",
+  "ozeki": "https://www.ozeki-net.co.jp/shop/tokyo/fuchu/fuchu/"
+ }
+}
