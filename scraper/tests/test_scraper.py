@@ -1,6 +1,6 @@
 import unittest
 
-from scraper import netprice, run, stores
+from scraper import ingest, netprice, prepare, run, stores
 
 KURASHIRU = '''
 <li class="X-leafletItem" data-leaflet-id="101"><div>cover</div>
@@ -98,6 +98,24 @@ class ImageTests(unittest.TestCase):
         self.assertEqual(f("年末年始（12/28～1/3）", "2026-12-27"), ("2026-12-28", "2027-01-03"))
         self.assertEqual(f("年末年始（12/28～1/3）", "2027-01-02"), ("2026-12-28", "2027-01-03"))
         self.assertEqual(f("オオゼキオンラインセール開催！"), (None, None))
+
+
+class RoutineTests(unittest.TestCase):
+    def test_tile_boxes_cover_whole_image(self):
+        boxes = prepare.tile_boxes(3090, 2210)
+        self.assertEqual(len(boxes), 6)
+        self.assertEqual((boxes[0][:2], boxes[-1][2:]), ((0, 0), (3090, 2210)))
+        self.assertEqual(boxes[1], (970, 0, 2120, 1165))
+        self.assertEqual(prepare.tile_boxes(1000, 1000), [(0, 0, 1000, 1000)])
+
+    def test_validate_rejects_bad_results(self):
+        item = {"name": "a", "key": "a", "category": "肉", "price": 100, "start": "2026-11-14"}
+        ingest.validate({"items": [item], "campaigns": [{"name": "c"}]})
+        for bad in ({"price": "100円"}, {"category": "お肉"}, {"key": " "}, {"start": "11/14"}):
+            with self.assertRaises(ValueError):
+                ingest.validate({"items": [{**item, **bad}]})
+        with self.assertRaises(ValueError):
+            ingest.validate({"campaigns": []})
 
 
 class RecordTests(unittest.TestCase):

@@ -726,5 +726,22 @@
     "start": "2026-11-29"
    }
   ]
+ },
+ {
+  "id": "ozeki-00026572",
+  "store": "ozeki",
+  "title": "ポルトガルワイン（11/7～11/18）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261107_26572_a1b0/book/index.html",
+  "start": "2026-11-07",
+  "end": "2026-11-18",
+  "fetched": "2026-11-17",
+  "campaigns": [
+   {
+    "name": "ポルトガルワインフェア",
+    "detail": null,
+    "start": "2026-11-07",
+    "end": "2026-11-18"
+   }
+  ]
  }
 ]

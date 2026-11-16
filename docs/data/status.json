@@ -1,9 +1,7 @@
 {
- "updated": "2026-11-16 19:35",
- "pending": 13,
- "errors": [
-  "ozeki-00026643: 抽出失敗 (Gemini API 503: {\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}\n)"
- ],
+ "updated": "2026-11-17 00:27",
+ "pending": 19,
+ "errors": [],
  "stores": {
   "keio": "京王ストア 府中店",
   "summit": "サミット ミナノ分倍河原店",
