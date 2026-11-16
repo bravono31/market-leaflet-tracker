@@ -1,0 +1,12 @@
+name: debug
+on: workflow_dispatch
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          UA="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
+          for u in https://ozeki.digimu.jp/data/00026669/img/thum/a1.pdf https://ozeki.digimu.jp/data/00026669/img/thum/a1.jpg https://ozeki.meclib.jp/library/books/261121_26669_a1b0/book/index.html https://www.ozeki-net.co.jp/shop/tokyo/fuchu/fuchu/; do
+            curl -sL -A "$UA" -m 25 -o /dev/null -w "$u %{http_code} %{size_download} %{time_total}\n" "$u" || echo "$u FAILED"
+          done
+          curl -s -m 10 https://ipinfo.io/country || true
