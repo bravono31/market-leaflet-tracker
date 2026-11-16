@@ -3,6 +3,7 @@ import base64
 import json
 import os
 import re
+import time
 import urllib.error
 import urllib.request
 
@@ -67,18 +68,27 @@ class QuotaExceeded(Exception):
     pass
 
 
-def _call(method, url, key, body=None):
+def _call(method, url, key, body=None, tries=3):
     req = urllib.request.Request(
         url, method=method, data=json.dumps(body).encode() if body else None,
         headers={"x-goog-api-key": key, "Content-Type": "application/json"})
-    try:
-        with urllib.request.urlopen(req, timeout=300) as res:
-            return json.loads(res.read())
-    except urllib.error.HTTPError as e:
-        detail = e.read().decode("utf-8", "replace")[:500]
-        if e.code == 429:
-            raise QuotaExceeded(detail) from None
-        raise RuntimeError(f"Gemini API {e.code}: {detail}") from None
+    for attempt in range(tries):
+        try:
+            with urllib.request.urlopen(req, timeout=600) as res:
+                return json.loads(res.read())
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode("utf-8", "replace")[:300]
+            if e.code == 429:
+                raise QuotaExceeded(detail) from None
+            error = RuntimeError(f"Gemini API {e.code}: {detail}")
+            if e.code < 500:
+                raise error from None
+        except OSError as e:  # timeouts, dropped connections
+            error = RuntimeError(f"Gemini API: {e}")
+        # 5xx ("model overloaded") and timeouts are usually transient.
+        print(f"  retrying after: {error}")
+        time.sleep(30 * (attempt + 1))
+    raise error
 
 
 def pick_model(key):
@@ -96,10 +106,10 @@ def pick_model(key):
     return best[1]
 
 
-def extract(key, model, store_name, title, today, pages, known_keys):
-    """pages: list of (bytes, mime_type). Returns the parsed JSON dict."""
-    parts = [{"inline_data": {"mime_type": mime, "data": base64.b64encode(data).decode()}}
-             for data, mime in pages]
+def extract(key, model, store_name, title, today, page, known_keys):
+    """page: (bytes, mime_type) of one leaflet page. Returns the parsed JSON dict."""
+    data, mime = page
+    parts = [{"inline_data": {"mime_type": mime, "data": base64.b64encode(data).decode()}}]
     parts.append({"text": PROMPT.format(
         store=store_name, title=title, today=today,
         known_keys="\n".join(known_keys) or "（まだ無し）")})

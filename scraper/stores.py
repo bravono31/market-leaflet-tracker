@@ -2,8 +2,8 @@
 
 Every fetcher returns a list of leaflet dicts:
   {id, store, title, source_url, start, end, pages: [page, ...]}
-A page is {"kind": "image"|"pdf", "url": ...} or
-{"kind": "tiles", "base": ..., "page": n, "w": px, "h": px} (Shufoo).
+A page is {"kind": "image", "url": ...} or
+{"kind": "tiles", "urls": [...], "w": px, "h": px, "tile": px} (row-major tiles).
 start/end are "YYYY-MM-DD" or None when the site does not expose them.
 """
 import html
@@ -34,7 +34,8 @@ SHUFOO_SHOP_ID = "264241"   # サミット ミナノ分倍河原店
 YAOKO_SHOP_CODE = "1208"    # ヤオコー 府中フォーリス店
 YAOKO_BASE = "https://yap-pd.yaoko-net.com/"
 SHUFOO_SCALE = 4            # 4x of the base size (~3000px wide)
-TILE = 512
+SHUFOO_TILE = 512
+MECLIB_SCALE = 2            # オオゼキ viewer: 2x of the thumbnail (~3000px wide)
 
 
 def http_get(url, timeout=60):
@@ -68,28 +69,46 @@ def fetch_keio():
 # --- オオゼキ ---------------------------------------------------------------
 
 def parse_ozeki(page_html):
+    """Leaflets of this shop, each pointing at its digital-leaflet viewer.
+
+    The PDF links on the page are served by a host that refuses non-Japanese
+    IPs (GitHub Actions), so pages are read from the viewer's image tiles.
+    """
     a = page_html.find('id="shop_flyer"')
     b = page_html.find("shop_flyer end", a)
     section = page_html[a:b if b > 0 else None]
     leaflets = []
     for block in section.split('class="shop_flyer_data_list"')[1:]:
-        pdfs = re.findall(r'href="([^"]+\.pdf)"', block)
-        if not pdfs:
+        viewer = re.search(r'href="(https://ozeki\.meclib\.jp/library/books/([^/"]+)/book/)', block)
+        if not viewer:
             continue
         title = re.search(r"<p>(.*?)</p>", block, re.S)
-        viewer = re.search(r'href="(https://ozeki\.meclib[^"]+)"', block)
-        data_id = re.search(r"/data/(\d+)/", pdfs[0]).group(1)
+        data_id = viewer.group(2).split("_")[1].zfill(8)
         leaflets.append({
             "id": f"ozeki-{data_id}", "store": "ozeki",
             "title": html.unescape(title.group(1)).strip() if title else "",
-            "source_url": viewer.group(1) if viewer else STORES["ozeki"]["url"],
-            "start": None, "end": None,
-            "pages": [{"kind": "pdf", "url": u} for u in pdfs]})
+            "source_url": viewer.group(1) + "index.html", "book": viewer.group(1),
+            "start": None, "end": None})
     return leaflets
 
 
+def parse_meclib_book(book, base):
+    """book: parsed data/book.txt of a meclib viewer, base: its .../book/ URL."""
+    w = book["thumb_width"] * MECLIB_SCALE
+    h = book["thumb_height"] * MECLIB_SCALE
+    tile = book["slice_width"]
+    count = math.ceil(w / tile) * math.ceil(h / tile)
+    return [{"kind": "tiles", "w": w, "h": h, "tile": tile,
+             "urls": [f"{base}jpg_{MECLIB_SCALE}/{p:04d}/{i:04d}.jpg" for i in range(1, count + 1)]}
+            for p in range(1, book["total_page"] + 1)]
+
+
 def fetch_ozeki():
-    return parse_ozeki(http_get(STORES["ozeki"]["url"]).decode("utf-8", "replace"))
+    out = parse_ozeki(http_get(STORES["ozeki"]["url"]).decode("utf-8", "replace"))
+    for leaf in out:
+        base = leaf.pop("book")
+        leaf["pages"] = parse_meclib_book(json.loads(http_get(base + "data/book.txt")), base)
+    return out
 
 
 # --- ヤオコー ---------------------------------------------------------------
@@ -148,7 +167,9 @@ def parse_shufoo_contents(xml_bytes, content_uri):
     w = int(conf.findtext("bookW")) * SHUFOO_SCALE
     h = int(conf.findtext("bookH")) * SHUFOO_SCALE
     base = f"{content_uri}index/{conf.findtext('imgPrefix').split('/')[-1]}/"
-    return [{"kind": "tiles", "base": base, "page": p, "w": w, "h": h}
+    count = math.ceil(w / SHUFOO_TILE) * math.ceil(h / SHUFOO_TILE)
+    return [{"kind": "tiles", "w": w, "h": h, "tile": SHUFOO_TILE,
+             "urls": [f"{base}{p}_{SHUFOO_SCALE * 100}_{i}.jpg" for i in range(count)]}
             for p in range(int(conf.findtext("totalPages")))]
 
 
@@ -161,18 +182,13 @@ def fetch_summit():
     return out
 
 
-def tile_grid(w, h):
-    return math.ceil(w / TILE), math.ceil(h / TILE)
-
-
 def stitch_tiles(page):
-    from PIL import Image  # only needed for Shufoo
-    cols, rows = tile_grid(page["w"], page["h"])
+    from PIL import Image
+    cols = math.ceil(page["w"] / page["tile"])
     canvas = Image.new("RGB", (page["w"], page["h"]), "white")
-    for i in range(cols * rows):
-        url = f"{page['base']}{page['page']}_{SHUFOO_SCALE * 100}_{i}.jpg"
+    for i, url in enumerate(page["urls"]):
         tile = Image.open(io.BytesIO(http_get(url)))
-        canvas.paste(tile, ((i % cols) * TILE, (i // cols) * TILE))
+        canvas.paste(tile, ((i % cols) * page["tile"], (i // cols) * page["tile"]))
     buf = io.BytesIO()
     canvas.save(buf, "JPEG", quality=85)
     return buf.getvalue()
@@ -188,5 +204,4 @@ def load_page(page):
     """Return (bytes, mime_type) for one leaflet page."""
     if page["kind"] == "tiles":
         return stitch_tiles(page), "image/jpeg"
-    mime = "application/pdf" if page["kind"] == "pdf" else "image/jpeg"
-    return http_get(page["url"]), mime
+    return http_get(page["url"]), "image/jpeg"

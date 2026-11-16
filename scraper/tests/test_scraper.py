@@ -46,11 +46,19 @@ class ParserTests(unittest.TestCase):
 
     def test_ozeki_only_reads_this_shops_section(self):
         got = stores.parse_ozeki(OZEKI)
-        self.assertEqual([l["id"] for l in got], ["ozeki-00026650", "ozeki-00026669"])
-        self.assertEqual(len(got[0]["pages"]), 2)
+        self.assertEqual([l["id"] for l in got], ["ozeki-00026650"])
         self.assertEqual(got[0]["title"], "日替わり（11/14～11/20）")
-        self.assertIn("meclib", got[0]["source_url"])
-        self.assertEqual(got[1]["source_url"], stores.STORES["ozeki"]["url"])
+        self.assertEqual(got[0]["book"], "https://ozeki.meclib.jp/library/books/261114_26650_a5b5/book/")
+        self.assertEqual(got[0]["source_url"], got[0]["book"] + "index.html")
+
+    def test_meclib_tiles(self):
+        book = {"thumb_width": 1545, "thumb_height": 1105, "slice_width": 500, "total_page": 2}
+        pages = stores.parse_meclib_book(book, "https://m/book/")
+        self.assertEqual(len(pages), 2)
+        self.assertEqual((pages[0]["w"], pages[0]["h"], pages[0]["tile"]), (3090, 2210, 500))
+        self.assertEqual(len(pages[0]["urls"]), 35)
+        self.assertEqual(pages[0]["urls"][0], "https://m/book/jpg_2/0001/0001.jpg")
+        self.assertEqual(pages[1]["urls"][-1], "https://m/book/jpg_2/0002/0035.jpg")
 
     def test_yaoko_pages_and_jst_dates(self):
         summary = {"flyer_id": 1192, "title": "11月11日号", "viewer_url": "https://v/1192",
@@ -69,10 +77,10 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(leaf["title"], "11月14日(土)～11月16日(月)号")
         pages = stores.parse_shufoo_contents(SHUFOO_CONTENTS, leaf["content_uri"])
         self.assertEqual(len(pages), 2)
-        self.assertEqual(pages[1], {"kind": "tiles", "page": 1, "w": 3076, "h": 2160,
-                                    "base": "https://ipq.example/c/2026/11/11/47/index/img/"})
-        self.assertEqual(stores.tile_grid(3076, 2160), (7, 5))
-        self.assertEqual(stores.tile_grid(1024, 512), (2, 1))
+        self.assertEqual((pages[1]["w"], pages[1]["h"], pages[1]["tile"]), (3076, 2160, 512))
+        self.assertEqual(len(pages[1]["urls"]), 35)
+        self.assertEqual(pages[1]["urls"][0], "https://ipq.example/c/2026/11/11/47/index/img/1_400_0.jpg")
+        self.assertEqual(pages[1]["urls"][-1], "https://ipq.example/c/2026/11/11/47/index/img/1_400_34.jpg")
 
 
 class RecordTests(unittest.TestCase):
@@ -94,6 +102,15 @@ class RecordTests(unittest.TestCase):
 
         record, _ = run.build_records(self.LEAF, {"items": []}, "2026-11-16")
         self.assertEqual((record["start"], record["end"]), ("2026-11-16", "2026-11-16"))
+
+    def test_merge_pages(self):
+        got = run.merge_pages([
+            {"period_start": None, "campaigns": [{"name": "c1"}], "items": [{"name": "a"}]},
+            {"period_start": "2026-11-14", "period_end": "2026-11-17", "campaigns": [],
+             "items": [{"name": "b"}]}])
+        self.assertEqual((got["period_start"], got["period_end"]), ("2026-11-14", "2026-11-17"))
+        self.assertEqual([i["name"] for i in got["items"]], ["a", "b"])
+        self.assertEqual(got["campaigns"], [{"name": "c1"}])
 
     def test_net_targets_only_packaged_and_stale(self):
         item = lambda key, packaged, end="2026-11-16": {"key": key, "packaged": packaged, "end": end}

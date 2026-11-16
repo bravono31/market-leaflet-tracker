@@ -43,6 +43,13 @@ def discover(today, errors):
     return [l for l in found if not (l["end"] and l["end"] > limit)]
 
 
+def merge_pages(results):
+    first = lambda k: next((r[k] for r in results if r.get(k)), None)
+    return {"period_start": first("period_start"), "period_end": first("period_end"),
+            "campaigns": [c for r in results for c in r.get("campaigns", [])],
+            "items": [i for r in results for i in r.get("items", [])]}
+
+
 def build_records(leaf, result, today):
     """Turn one Gemini result into (leaflet record, item records)."""
     start = leaf["start"] or result.get("period_start") or today
@@ -105,9 +112,11 @@ def main():
         for leaf in new[:int(os.environ.get("MAX_LEAFLETS", "12"))]:
             known = sorted({i["key"] for i in items})
             try:
-                pages = [stores.load_page(p) for p in leaf["pages"]]
-                result = extract.extract(key, model, stores.STORES[leaf["store"]]["name"],
-                                         leaf["title"], today, pages, known)
+                # One request per page: a whole leaflet in one go times out.
+                result = merge_pages([
+                    extract.extract(key, model, stores.STORES[leaf["store"]]["name"],
+                                    leaf["title"], today, stores.load_page(p), known)
+                    for p in leaf["pages"]])
             except extract.QuotaExceeded as e:
                 print("quota exceeded, the rest waits for the next run:", e)
                 break
