@@ -98,7 +98,8 @@ def parse_meclib_book(book, base):
     h = book["thumb_height"] * MECLIB_SCALE
     tile = book["slice_width"]
     count = math.ceil(w / tile) * math.ceil(h / tile)
-    return [{"kind": "tiles", "w": w, "h": h, "tile": tile,
+    # split: these leaflets are too dense for the model to read in one image.
+    return [{"kind": "tiles", "w": w, "h": h, "tile": tile, "split": 2,
              "urls": [f"{base}jpg_{MECLIB_SCALE}/{p:04d}/{i:04d}.jpg" for i in range(1, count + 1)]}
             for p in range(1, book["total_page"] + 1)]
 
@@ -189,9 +190,36 @@ def stitch_tiles(page):
     for i, url in enumerate(page["urls"]):
         tile = Image.open(io.BytesIO(http_get(url)))
         canvas.paste(tile, ((i % cols) * page["tile"], (i // cols) * page["tile"]))
+    return canvas
+
+
+def split_boxes(w, h, parts, overlap=0.06):
+    """Vertical strips covering the image, overlapping so no product is cut in two."""
+    step, pad = w / parts, int(w * overlap / 2)
+    return [(max(0, round(i * step) - pad), 0, min(w, round((i + 1) * step) + pad), h)
+            for i in range(parts)]
+
+
+def _jpeg(image):
     buf = io.BytesIO()
-    canvas.save(buf, "JPEG", quality=85)
+    image.save(buf, "JPEG", quality=85)
     return buf.getvalue()
+
+
+def period_from_title(title, today):
+    """(start, end) from titles like "…（11/14～11/20）", "11/14(土)～17(火)", "11月21日(土)"."""
+    m = re.search(r"(\d{1,2})/(\d{1,2})(?:\([^)]*\))?\s*[～〜~－-]\s*(?:(\d{1,2})/)?(\d{1,2})", title)
+    if m:
+        m1, d1, m2, d2 = int(m[1]), int(m[2]), int(m[3] or m[1]), int(m[4])
+    else:
+        m = re.search(r"(\d{1,2})月(\d{1,2})日", title)
+        if not m:
+            return None, None
+        m1, d1 = m2, d2 = int(m[1]), int(m[2])
+    year, month = int(today[:4]), int(today[5:7])
+    # Leaflets are always near today: a far-off month belongs to the adjacent year.
+    fix = lambda mm: year + (1 if mm - month < -6 else -1 if mm - month > 6 else 0)
+    return f"{fix(m1)}-{m1:02d}-{d1:02d}", f"{fix(m2)}-{m2:02d}-{d2:02d}"
 
 
 # ---------------------------------------------------------------------------
@@ -201,7 +229,9 @@ FETCHERS = {"keio": fetch_keio, "summit": fetch_summit,
 
 
 def load_page(page):
-    """Return (bytes, mime_type) for one leaflet page."""
-    if page["kind"] == "tiles":
-        return stitch_tiles(page), "image/jpeg"
-    return http_get(page["url"]), "image/jpeg"
+    """Return the images to send for one leaflet page as [(bytes, mime_type), ...]."""
+    if page["kind"] != "tiles":
+        return [(http_get(page["url"]), "image/jpeg")]
+    image = stitch_tiles(page)
+    boxes = split_boxes(image.width, image.height, page.get("split", 1))
+    return [(_jpeg(image.crop(box)), "image/jpeg") for box in boxes]

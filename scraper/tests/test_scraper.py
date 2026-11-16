@@ -83,6 +83,23 @@ class ParserTests(unittest.TestCase):
         self.assertEqual(pages[1]["urls"][-1], "https://ipq.example/c/2026/11/11/47/index/img/1_400_34.jpg")
 
 
+class ImageTests(unittest.TestCase):
+    def test_split_boxes_cover_with_overlap(self):
+        self.assertEqual(stores.split_boxes(3090, 2210, 1), [(0, 0, 3090, 2210)])
+        left, right = stores.split_boxes(3000, 2000, 2)
+        self.assertEqual((left[0], right[2]), (0, 3000))
+        self.assertEqual(left[2] - right[0], 180)  # 6% of the width is shared
+
+    def test_period_from_title(self):
+        f = lambda t, today="2026-11-16": stores.period_from_title(t, today)
+        self.assertEqual(f("日替わりチラシ開催中！（11/14～11/20）"), ("2026-11-14", "2026-11-20"))
+        self.assertEqual(f("京王ストア 11/14(土)～17(火)：特売"), ("2026-11-14", "2026-11-17"))
+        self.assertEqual(f("【府中店】11月21日(土)　お鍋フェアー"), ("2026-11-21", "2026-11-21"))
+        self.assertEqual(f("年末年始（12/28～1/3）", "2026-12-27"), ("2026-12-28", "2027-01-03"))
+        self.assertEqual(f("年末年始（12/28～1/3）", "2027-01-02"), ("2026-12-28", "2027-01-03"))
+        self.assertEqual(f("オオゼキオンラインセール開催！"), (None, None))
+
+
 class RecordTests(unittest.TestCase):
     LEAF = {"id": "keio-1", "store": "keio", "title": "t", "source_url": "u",
             "start": None, "end": None}
@@ -92,6 +109,8 @@ class RecordTests(unittest.TestCase):
                   "items": [
                       {"name": "A", "key": " a ", "category": "肉", "price": 100, "packaged": False},
                       {"name": "B", "key": "b", "category": "肉", "price_tax_in": 108,
+                       "start": "2026-11-15", "packaged": True},
+                      {"name": "B", "key": "b2", "category": "肉", "price_tax_in": 108,
                        "start": "2026-11-15", "packaged": True},
                       {"name": "no price", "key": "c", "category": "肉", "packaged": False}]}
         record, items = run.build_records(self.LEAF, result, "2026-11-16")

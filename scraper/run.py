@@ -39,6 +39,9 @@ def discover(today, errors):
             traceback.print_exc()
             errors.append(f"{stores.STORES[store]['name']}: 取得失敗 ({e})")
     # Evergreen notices (e.g. a delivery ad valid until 2100) carry no prices.
+    for leaf in found:
+        if not leaf["start"]:
+            leaf["start"], leaf["end"] = stores.period_from_title(leaf["title"], today)
     limit = (datetime.fromisoformat(today) + timedelta(days=365)).strftime("%Y-%m-%d")
     return [l for l in found if not (l["end"] and l["end"] > limit)]
 
@@ -57,10 +60,15 @@ def build_records(leaf, result, today):
     record = {"id": leaf["id"], "store": leaf["store"], "title": leaf["title"],
               "source_url": leaf["source_url"], "start": start, "end": end,
               "fetched": today, "campaigns": result.get("campaigns", [])}
-    items = []
+    items, seen = [], set()
     for it in result.get("items", []):
         if it.get("price") is None and it.get("price_tax_in") is None:
             continue
+        # Split pages overlap, so the same product can be read twice.
+        dup = (it["name"], it.get("price"), it.get("price_tax_in"), it.get("start"))
+        if dup in seen:
+            continue
+        seen.add(dup)
         items.append({
             "leaflet": leaf["id"], "store": leaf["store"],
             "name": it["name"], "key": it["key"].strip(), "category": it["category"],
@@ -95,7 +103,7 @@ def main():
     done = {l["id"] for l in leaflets}
     new = [l for l in discover(today, errors) if l["id"] not in done]
     # Soonest-expiring first, so nothing vanishes from the site before we read it.
-    new.sort(key=lambda l: l["end"] or "0")
+    new.sort(key=lambda l: l["end"] or "9")
     print(f"new leaflets: {len(new)}")
     for l in new:
         print(f"  {l['id']} [{len(l['pages'])}p] {l['title']}")
@@ -115,8 +123,8 @@ def main():
                 # One request per page: a whole leaflet in one go times out.
                 result = merge_pages([
                     extract.extract(key, model, stores.STORES[leaf["store"]]["name"],
-                                    leaf["title"], today, stores.load_page(p), known)
-                    for p in leaf["pages"]])
+                                    leaf["title"], today, image, known)
+                    for p in leaf["pages"] for image in stores.load_page(p)])
             except extract.QuotaExceeded as e:
                 print("quota exceeded, the rest waits for the next run:", e)
                 break
