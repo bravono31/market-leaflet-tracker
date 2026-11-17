@@ -4,9 +4,12 @@ const yen = (n) => "¥" + Math.round(n).toLocaleString("ja-JP");
 const md = (d) => `${+d.slice(5, 7)}/${+d.slice(8, 10)}`;
 const period = (a, b) => (a === b ? md(a) : `${md(a)}〜${md(b)}`);
 const TAX10 = new Set(["酒", "日用品"]);
+// Same order as CATEGORIES in scraper/extract.py.
+const CATS = ["野菜・果物", "肉", "魚", "惣菜・弁当", "乳製品・卵", "パン・米・麺",
+  "加工食品・調味料", "冷凍食品", "菓子", "飲料", "酒", "日用品", "その他"];
 
 let items = [], leaflets = [], net = {}, status = { stores: {}, store_urls: {}, errors: [] };
-const hidden = new Set();
+const hidden = new Set(), hiddenCats = new Set();
 const today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); // JST
 
 // Tax-included price; estimated from the tax rate when the leaflet shows only one of them.
@@ -23,10 +26,9 @@ const isActive = (it) => it.start <= today && today <= it.end;
 
 function filtered() {
   const q = $("q").value.trim().toLowerCase();
-  const cat = $("category").value;
   const activeOnly = $("active").checked;
   return items.filter((it) =>
-    !hidden.has(it.store) && (!cat || it.category === cat) && (!activeOnly || isActive(it)) &&
+    !hidden.has(it.store) && !hiddenCats.has(it.category) && (!activeOnly || isActive(it)) &&
     (!q || (it.name + " " + it.key).toLowerCase().includes(q)));
 }
 
@@ -154,6 +156,21 @@ function showTab(name) {
   render();
 }
 
+// Pressed chips are shown; the 全表示/全非表示 buttons press or release every chip in the group.
+function chipGroup(box, hiddenSet) {
+  box.onclick = (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const chips = b.dataset.all ? [...box.querySelectorAll("[data-value]")] : [b];
+    const on = b.dataset.all ? b.dataset.all === "on" : b.getAttribute("aria-pressed") !== "true";
+    for (const c of chips) {
+      c.setAttribute("aria-pressed", on);
+      on ? hiddenSet.delete(c.dataset.value) : hiddenSet.add(c.dataset.value);
+    }
+    render();
+  };
+}
+
 async function init() {
   const get = (f) => fetch(`data/${f}`, { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   const [i, l, n, s] = await Promise.all(["items.json", "leaflets.json", "net.json", "status.json"].map(get));
@@ -163,20 +180,16 @@ async function init() {
     (status.pending ? `・未処理 ${status.pending}件` : "") +
     (status.errors || []).map((e) => `<span class="err">⚠ ${esc(e)}</span>`).join("");
   $("stores").innerHTML = Object.keys(status.stores).map((s) =>
-    `<button class="chip" aria-pressed="true" data-store="${s}"><span class="dot" style="background:var(--${s})"></span>${esc(status.stores[s])}</button>`).join("");
-  $("category").innerHTML += [...new Set(items.map((x) => x.category))].sort().map((c) => `<option>${esc(c)}</option>`).join("");
+    `<button class="chip" aria-pressed="true" data-value="${s}"><span class="dot" style="background:var(--${s})"></span>${esc(status.stores[s])}</button>`).join("");
+  const cats = [...new Set(items.map((x) => x.category))].sort((a, b) => CATS.indexOf(a) - CATS.indexOf(b));
+  $("categories").innerHTML = `<button class="chip all" data-all="on">全表示</button><button class="chip all" data-all="off">全非表示</button>` +
+    cats.map((c) => `<button class="chip" aria-pressed="true" data-value="${esc(c)}">${esc(c)}</button>`).join("");
   $("products").innerHTML = [...new Set(items.map((x) => x.key))].sort((a, b) => a.localeCompare(b, "ja")).map((k) => `<option value="${esc(k)}">`).join("");
 
   $("tabs").onclick = (e) => e.target.dataset.tab && showTab(e.target.dataset.tab);
-  $("stores").onclick = (e) => {
-    const b = e.target.closest("[data-store]");
-    if (!b) return;
-    const off = b.getAttribute("aria-pressed") === "true";
-    b.setAttribute("aria-pressed", !off);
-    off ? hidden.add(b.dataset.store) : hidden.delete(b.dataset.store);
-    render();
-  };
-  for (const id of ["q", "category", "active", "sort", "product"]) $(id).oninput = render;
+  chipGroup($("stores"), hidden);
+  chipGroup($("categories"), hiddenCats);
+  for (const id of ["q", "active", "sort", "product"]) $(id).oninput = render;
   document.querySelector("main").addEventListener("click", (e) => {
     const key = e.target.closest("[data-key]")?.dataset.key;
     if (key) { $("product").value = key; showTab("history"); scrollTo(0, 0); }
