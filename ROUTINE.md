@@ -4,16 +4,18 @@
 
 ## 手順
 
-1. `python3 -m pip install -r requirements.txt` のあと `python3 -m scraper.prepare` を実行する。
-   出力が `prepared=0` なら、`python3 -m scraper.ingest` を実行して手順4へ進む（読み取りは不要）。
+1. `python3 -m venv /tmp/venv && /tmp/venv/bin/pip install -q -r requirements.txt` で仮想環境を作る
+   （クラウド環境の標準 Python は Pillow が壊れているため）。以降の Python はすべて
+   `/tmp/venv/bin/python` を使う。続けて `/tmp/venv/bin/python -m scraper.prepare` を実行する。
+   出力が `prepared=0` なら、`/tmp/venv/bin/python -m scraper.ingest` を実行して手順4へ進む（読み取りは不要）。
 2. `work/manifest.json` の `leaflets` を順に処理する。各チラシについて `images` の画像を
    すべて Read で読み、下の形式の JSON を `result` のパスに書く。
    - 画像は1ページを重なりつきで分割したもの（`p1_t3.jpg` = 1ページ目の3枚目）。
      重なり部分に同じ商品が写るので、1チラシの中で重複させない。
    - 読めない・自信が無い価格は推測で埋めず、その商品を省く。
    - `work/known_keys.txt` に同じ商品の key があれば、その文字列をそのまま使う。
-3. `python3 -m scraper.ingest` を実行する。「読み取り結果が不正」と出たチラシは JSON を直して再実行する。
-4. `python3 -m unittest discover -s scraper/tests -t .` が通ることを確認し、
+3. `/tmp/venv/bin/python -m scraper.ingest` を実行する。「読み取り結果が不正」と出たチラシは JSON を直して再実行する。
+4. `/tmp/venv/bin/python -m unittest discover -s scraper/tests -t .` が通ることを確認し、
    `docs/data` だけを `git add` して「Update leaflet data」でコミットし、main に push する。
    `work/` はコミットしない。コードは変更しない。
 5. 追加したチラシ数・品目数と、エラーがあればその内容を日本語で簡潔に報告する。
