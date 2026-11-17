@@ -1,8 +1,8 @@
 {
- "updated": "2026-11-17 09:21",
- "pending": 8,
+ "updated": "2026-11-18 04:20",
+ "pending": 0,
  "errors": [
-  "サミット ミナノ分倍河原店: 取得失敗 (<urlopen error Tunnel connection failed: 403 Forbidden>)"
+  "オオゼキ 府中店: 取得失敗 (<urlopen error [Errno 104] Connection reset by peer>)"
  ],
  "stores": {
   "keio": "京王ストア 府中店",
