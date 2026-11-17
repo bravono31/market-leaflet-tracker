@@ -1,7 +1,9 @@
 {
- "updated": "2026-11-17 00:27",
- "pending": 19,
- "errors": [],
+ "updated": "2026-11-17 09:21",
+ "pending": 8,
+ "errors": [
+  "サミット ミナノ分倍河原店: 取得失敗 (<urlopen error Tunnel connection failed: 403 Forbidden>)"
+ ],
  "stores": {
   "keio": "京王ストア 府中店",
   "summit": "サミット ミナノ分倍河原店",
