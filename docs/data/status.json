@@ -1,9 +1,7 @@
 {
- "updated": "2026-11-18 04:20",
- "pending": 0,
- "errors": [
-  "オオゼキ 府中店: 取得失敗 (<urlopen error [Errno 104] Connection reset by peer>)"
- ],
+ "updated": "2026-11-19 04:17",
+ "pending": 3,
+ "errors": [],
  "stores": {
   "keio": "京王ストア 府中店",
   "summit": "サミット ミナノ分倍河原店",

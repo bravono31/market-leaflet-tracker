@@ -1532,5 +1532,85 @@
     "end": "2026-11-30"
    }
   ]
+ },
+ {
+  "id": "ozeki-00026688",
+  "store": "ozeki",
+  "title": "【府中店】11月21日(土)22日(日)朝市開催！",
+  "source_url": "https://ozeki.meclib.jp/library/books/261121_26688_a1b0/book/index.html",
+  "start": "2026-11-21",
+  "end": "2026-11-21",
+  "fetched": "2026-11-19",
+  "campaigns": []
+ },
+ {
+  "id": "ozeki-00026687",
+  "store": "ozeki",
+  "title": "【府中店】11月21日(土)22日(日)朝市開催！",
+  "source_url": "https://ozeki.meclib.jp/library/books/261121_26687_a1b0/book/index.html",
+  "start": "2026-11-21",
+  "end": "2026-11-21",
+  "fetched": "2026-11-19",
+  "campaigns": []
+ },
+ {
+  "id": "ozeki-00026695",
+  "store": "ozeki",
+  "title": "11/21(土)～11/23(月・祝)イルキャンティ ドレッシングが緊急入荷",
+  "source_url": "https://ozeki.meclib.jp/library/books/261121_26695_a1b0/book/index.html",
+  "start": "2026-11-21",
+  "end": "2026-11-23",
+  "fetched": "2026-11-19",
+  "campaigns": []
+ },
+ {
+  "id": "ozeki-00026539",
+  "store": "ozeki",
+  "title": "だし企画（11/1～11/30）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261101_26539_a1b0/book/index.html",
+  "start": "2026-11-01",
+  "end": "2026-11-30",
+  "fetched": "2026-11-19",
+  "campaigns": []
+ },
+ {
+  "id": "ozeki-00026538",
+  "store": "ozeki",
+  "title": "日清食品冷凍パスタ（11/1～11/30）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261101_26538_a1b0/book/index.html",
+  "start": "2026-11-01",
+  "end": "2026-11-30",
+  "fetched": "2026-11-19",
+  "campaigns": []
+ },
+ {
+  "id": "ozeki-00026537",
+  "store": "ozeki",
+  "title": "11月イチオシ！部門特集！（11/1～11/30）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261101_26537_a1b0/book/index.html",
+  "start": "2026-11-01",
+  "end": "2026-11-30",
+  "fetched": "2026-11-19",
+  "campaigns": []
+ },
+ {
+  "id": "ozeki-00026536",
+  "store": "ozeki",
+  "title": "11月イチオシ！部門特集！（11/1～11/30）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261101_26536_a1b0/book/index.html",
+  "start": "2026-11-01",
+  "end": "2026-11-30",
+  "fetched": "2026-11-19",
+  "campaigns": []
+ },
+ {
+  "id": "ozeki-00026535",
+  "store": "ozeki",
+  "title": "11月イチオシ！部門特集！（11/1～11/30）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261101_26535_a1b0/book/index.html",
+  "start": "2026-11-01",
+  "end": "2026-11-30",
+  "fetched": "2026-11-19",
+  "campaigns": []
  }
 ]
