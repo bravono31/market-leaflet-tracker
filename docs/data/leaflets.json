@@ -1612,5 +1612,98 @@
   "end": "2026-11-30",
   "fetched": "2026-11-19",
   "campaigns": []
+ },
+ {
+  "id": "ozeki-00026706",
+  "store": "ozeki",
+  "title": "オオゼキ緊急号外開催中！（11/26～11/27）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261126_26706_a2b2/book/index.html",
+  "start": "2026-11-26",
+  "end": "2026-11-27",
+  "fetched": "2026-11-20",
+  "campaigns": []
+ },
+ {
+  "id": "ozeki-00026703",
+  "store": "ozeki",
+  "title": "アプリ・WEB限定チラシ開催中！（11/21～11/27）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261121_26703_a2b0/book/index.html",
+  "start": "2026-11-21",
+  "end": "2026-11-27",
+  "fetched": "2026-11-20",
+  "campaigns": [
+   {
+    "name": "11/26(木)・27(金) 号外セール開催",
+    "detail": "500円均一セール・250円均一セール(鮮魚)、岩手純情豚フェア(11/25〜27)",
+    "start": "2026-11-26",
+    "end": "2026-11-27"
+   }
+  ]
+ },
+ {
+  "id": "ozeki-00026696",
+  "store": "ozeki",
+  "title": "1週間日替わりチラシ開催中！（11/21～11/27）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261121_26696_a5b5/book/index.html",
+  "start": "2026-11-21",
+  "end": "2026-11-27",
+  "fetched": "2026-11-20",
+  "campaigns": [
+   {
+    "name": "キャッシュバックポイント2倍(現金・クレジット・コード決済)",
+    "detail": "西荻窪・府中・ときわ台・千川駅前店限定",
+    "start": "2026-11-21",
+    "end": "2026-11-23"
+   },
+   {
+    "name": "キャッシュバックポイント5倍(現金)・2倍(クレジット/コード決済)",
+    "detail": "現金交換日 本日限り・店舗限定",
+    "start": "2026-11-25",
+    "end": "2026-11-25"
+   },
+   {
+    "name": "号外セール実施(詳細はアプリ)",
+    "detail": null,
+    "start": "2026-11-26",
+    "end": "2026-11-27"
+   }
+  ]
+ },
+ {
+  "id": "ozeki-00026534",
+  "store": "ozeki",
+  "title": "11月イチオシ！部門特集！（11/1～11/30）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261101_26534_a1b0/book/index.html",
+  "start": "2026-11-01",
+  "end": "2026-11-30",
+  "fetched": "2026-11-20",
+  "campaigns": []
+ },
+ {
+  "id": "ozeki-00026533",
+  "store": "ozeki",
+  "title": "11月イチオシ！部門特集！（11/1～11/30）",
+  "source_url": "https://ozeki.meclib.jp/library/books/261101_26533_a1b0/book/index.html",
+  "start": "2026-11-01",
+  "end": "2026-11-30",
+  "fetched": "2026-11-20",
+  "campaigns": []
+ },
+ {
+  "id": "ozeki-00026513",
+  "store": "ozeki",
+  "title": "オオゼキオンラインセール開催！",
+  "source_url": "https://ozeki.meclib.jp/library/books/261104_26513_a1b0/book/index.html",
+  "start": "2026-11-04",
+  "end": "2026-11-04",
+  "fetched": "2026-11-20",
+  "campaigns": [
+   {
+    "name": "ブラックフライデーセール(オンラインストア限定・送料込み)",
+    "detail": "11/4・11/11・11/18・11/25 各日8:00より販売開始",
+    "start": "2026-11-04",
+    "end": null
+   }
+  ]
  }
 ]
